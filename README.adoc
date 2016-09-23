@@ -1,0 +1,7 @@
+== Build
+
+    ./gradlew -Ppush
+
+== Run
+
+    docker run -p 8080:8080 -t  ninedemons/daemon-demo:0.0.1

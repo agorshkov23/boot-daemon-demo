@@ -123,17 +123,27 @@ buildDeb {
     link("/opt/local/daemon-demo/bin/daemon-demo.conf", "/opt/local/daemon-demo/conf/daemon-demo.conf")
 }
 
-task buildDocker(type: Docker, dependsOn: build) {
-    push = true
+
+docker {
+    baseImage "openjdk:8-alpine"
+}
+
+task buildDocker(type: Docker) {
+
+
+    push = project.hasProperty('push')
     applicationName = jar.baseName
-    tagVersion = '1.0'
-    dockerfile = file('src/main/docker/Dockerfile')
-    doFirst {
-        copy {
-            from jar
-            into stageDir
-        }
+
+    volume('/tmp')
+
+    addFile {
+        from jar
+        rename {'app.jar'}
     }
+    runCommand 'sh -c \'touch /app.jar\''
+
+    entryPoint( ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"])
+
 }
 
 defaultTasks 'clean', 'build', 'buildDocker'
