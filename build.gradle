@@ -2,6 +2,7 @@ buildscript {
     ext {
         springBootVersion = "1.4.1.RELEASE"
         osPackageVersion = "4.0.0"
+        gradleDockerVersion = "1.2"
     }
     repositories {
         mavenCentral()
@@ -10,6 +11,7 @@ buildscript {
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath("com.netflix.nebula:gradle-ospackage-plugin:${osPackageVersion}")
+        classpath("se.transmode.gradle:gradle-docker:${gradleDockerVersion}")
     }
 }
 
@@ -18,10 +20,14 @@ apply plugin: "java"
 apply plugin: "eclipse"
 apply plugin: "spring-boot"
 apply plugin: "nebula.ospackage"
+apply plugin: 'docker'
+
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 version = "0.0.1"
+group = 'ninedemons'
+
 
 repositories {
     mavenCentral()
@@ -117,4 +123,17 @@ buildDeb {
     link("/opt/local/daemon-demo/bin/daemon-demo.conf", "/opt/local/daemon-demo/conf/daemon-demo.conf")
 }
 
-defaultTasks 'clean', 'build', 'buildDeb'
+task buildDocker(type: Docker, dependsOn: build) {
+    push = true
+    applicationName = jar.baseName
+    tagVersion = '1.0'
+    dockerfile = file('src/main/docker/Dockerfile')
+    doFirst {
+        copy {
+            from jar
+            into stageDir
+        }
+    }
+}
+
+defaultTasks 'clean', 'build', 'buildDocker'
